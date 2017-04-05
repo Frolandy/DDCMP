@@ -14,22 +14,22 @@
 #define IRDATAAGAIN     0x02
 #define IRDATACOMPLETE  0x04
 
-#define CONTROL_MESSAGES 		1
+#define CONTROL_MESSAGES 		    1
 #define DATA_COMMAND_MESSAGES 	2
-#define DATA_MESSAGE_HEADER 	3
+#define DATA_MESSAGE_HEADER 	  3
 #define DATA_COMMAND_RESPONSES 	4
-#define DATA_BLOCKS 			5
+#define DATA_BLOCKS 			      5
 
-#define START 					1
-#define STACK 					2
-#define ACK 					3
-#define NACK 					4
-#define WAY 					5
-#define WAY_RESP 				6
-#define READ_DATA 				7
-#define READ_DATA_RESP 			8
+#define START 					        1
+#define STACK 					        2
+#define ACK 					          3
+#define NACK 					          4
+#define WAY 					          5
+#define WAY_RESP 				        6
+#define READ_DATA 				      7
+#define READ_DATA_RESP 			    8
 
-#define OK						1
+#define OK						          1
 #define ERROR                   0
 
 char send_buffer[BUFFER_SIZE];    //Буфер передачи
