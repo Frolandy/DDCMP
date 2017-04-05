@@ -25,11 +25,11 @@
 #define ACK                     3
 #define NACK                    4
 #define WAY                     5
-#define WAY_RESP 				        6
-#define READ_DATA 				      7
-#define READ_DATA_RESP 			    8
+#define WAY_RESP                6
+#define READ_DATA               7
+#define READ_DATA_RESP          8
 
-#define OK						          1
+#define OK                      1
 #define ERROR                   0
 
 char send_buffer[BUFFER_SIZE];    //Буфер передачи
