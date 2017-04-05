@@ -7,11 +7,13 @@
 
 #ifndef INC_WRITE_READ_H_
 #define INC_WRITE_READ_H_
-#include "board.h"
 #include "USART.h"
 #include "ddcmp_session.h"
+#include "processing.h"
 
-void write_on_port(UART_HandleTypeDef *Uart, int size);
 int read_on_port(UART_HandleTypeDef *Uart);
+void write_on_port(UART_HandleTypeDef *Uart, int size);
+
 
 #endif /* INC_WRITE_READ_H_ */
+

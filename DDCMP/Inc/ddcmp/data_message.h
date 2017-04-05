@@ -7,8 +7,10 @@
 
 #ifndef INC_DATA_MESSAGE_H_
 #define INC_DATA_MESSAGE_H_
+
 #include "ddcmp_session.h"
 
 void set_data_header(int size);
-int sendctrl(char *buf, UART_HandleTypeDef *Uart);
+void send_way(UART_HandleTypeDef *Uart);
+
 #endif /* INC_DATA_MESSAGE_H_ */

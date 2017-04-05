@@ -1,5 +1,5 @@
 /**
- ***************************************************************************
+ ******************************************************************************
  * File Name          : main.c
  * Description        : Main program body
  ******************************************************************************
@@ -31,7 +31,11 @@
  ******************************************************************************
  */
 /* Includes ------------------------------------------------------------------*/
+
 #include "main.h"
+#include "ddcmp_session.h"
+#include "Write-Read.h"
+#include "processing.h"
 
 
 extern UART_HandleTypeDef huart1;
@@ -55,8 +59,8 @@ int main(void)
 		/* USER CODE END WHILE */
 
 		if (USART_GetRxCount(&huart4) > 0) {
-			char c = USART_GetChar(&huart4);
-			USART_PutChar(&huart4,c);
+			bytesread = read_on_port(&huart4);
+			processing(&huart4);
 		}
 		/* USER CODE BEGIN 3 */
 
