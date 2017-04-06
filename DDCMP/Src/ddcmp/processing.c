@@ -1,3 +1,6 @@
+/*
+
+*/
 #include "processing.h"
 
 int type_of_message(char first_byte){ //Тип сообщения
@@ -32,14 +35,21 @@ int this_message_is(char second_byte, int message_type){ //Определени�
 			return START;
 
 			case 0x07:
+			if(test_crc(receive_buffer, 6) == OK){
 			waiting = WAY;
 			return STACK;
+			}
+			break;
 
 			case 0x01:
+			if(receive_buffer[3] == send_cnt && test_crc(receive_buffer, 6) == OK)
 			return ACK;
+			break;
 
 			case 0x02:
+			if(receive_buffer[3] == send_cnt && test_crc(receive_buffer, 6) == OK)
 			return NACK;
+			break;
 		}
 
 	}else if(message_type==DATA_COMMAND_MESSAGES){
@@ -98,9 +108,10 @@ void parsing_message(){ //Разбор сообщения
 		    }
 		    	dataflag |= IRDATAFIRST;
 
+		    	if (restreclaenge - byteread <= 0){
 		    	receive_message_type = type_of_message(receive_buffer[8]);
 		    	receive_message = this_message_is(receive_buffer[9], receive_message_type);
-
+		    	}
 			}
 		}else
 			receive_message = this_message_is(receive_buffer[1], receive_message_type);
@@ -123,43 +134,24 @@ void answer(UART_HandleTypeDef *Uart){ //Ответ
 				if(waiting == ACK && receive_message == ACK){
 					waiting = WAY_RESP;
 				}else if(waiting == WAY_RESP && receive_message == WAY_RESP){
-					restreclaenge -= byteread;
-
-					if(restreclaenge > 0 && check_crc(receive_buffer,byteread) == OK){
-					send_ack(Uart);
-					break;
-					}
-					dataflag |= IRDATACOMPLETE;
 					send_ack(Uart);
 					waiting = 0;
-					break;
 				}
-
 				break;
 
 			case READ_DATA:
 
 				if(waiting == ACK && receive_message == ACK){
 					waiting = READ_DATA_RESP;
-				}else if(waiting == READ_DATA_RESP && receive_message == READ_DATA_RESP){
-
-					restreclaenge -= byteread;
-
-					if(restreclaenge > 0 && check_crc(receive_buffer,byteread) == OK){
+				}else if(waiting == READ_DATA_RESP && receive_message == READ_DATA_RESP)
 					send_ack(Uart);
-					break;
-					}
-
-					dataflag |= IRDATACOMPLETE;
-					send_ack(Uart);
-					waiting = 0;
-					break;
-				}
+					waiting = DATA_BLOCKS;
 				break;
 
 			case ACK:
 
 			if(waiting == DATA_BLOCKS && receive_message == DATA_BLOCKS){
+				if(restreclaenge >= byteread && check_crc(receive_buffer,byteread-2) == OK){
 
 				restreclaenge -= byteread;
 
@@ -172,8 +164,8 @@ void answer(UART_HandleTypeDef *Uart){ //Ответ
 				send_ack(Uart);
 				waiting = 0;
 				break;
+				}
 			}
-
 			break;
 		}
 }
