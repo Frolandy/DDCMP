@@ -56,11 +56,10 @@ void set_crc(char *buf, int cnt){ //Установка контрольной с
 void initialization(UART_HandleTypeDef *Uart){    //Инициализация, отправка СТАРТ
   waiting = STACK;
   sent = START;
-  send_cnt = 1;
-  receive_cnt = 1;
   accesstype = 0x0c;
   Board_Init();
   send_start(Uart);
 }
+
 
 
