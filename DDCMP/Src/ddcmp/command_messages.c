@@ -4,6 +4,8 @@ int send_start(UART_HandleTypeDef *Uart) { //Отправить START
   memcpy(send_buffer,msgstart,6);
   set_crc(send_buffer, 6);
   sent = START;
+  send_cnt = 1;
+  receive_cnt = 1;
   return(resend(8, Uart));
 }
 
@@ -12,6 +14,7 @@ int send_ack(UART_HandleTypeDef *Uart){   //Отправить АСК
   memcpy(send_buffer,msgack,6);
   set_crc(send_buffer, 6);
   sent = ACK;
+  send_cnt++;
   return(resend(8, Uart));
 }
 
@@ -28,5 +31,6 @@ int send_nack(UART_HandleTypeDef *Uart){  //Отправить NACK
   memcpy(send_buffer, msgnack, 6);
   set_crc(send_buffer, 6);
   sent = NACK;
+  send_cnt++;
   return(resend(8, Uart));
 }
