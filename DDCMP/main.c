@@ -31,8 +31,8 @@
  ******************************************************************************
  */
 /* Includes ------------------------------------------------------------------*/
-
 #include "main.h"
+#include "USART.h"
 #include "ddcmp_session.h"
 #include "Write-Read.h"
 #include "processing.h"
@@ -59,9 +59,16 @@ int main(void)
 		/* USER CODE END WHILE */
 
 		if (USART_GetRxCount(&huart4) > 0) {
-			bytesread = read_on_port(&huart4);
-			processing(&huart4);
+			if(read_on_port(&huart4,bytes_to_read)){
+				for(int i=0; i<bytes_to_read; i++){
+					USART_PutChar(&huart4, receive_buffer[i]);
+				}
+				processing(&huart4);
+				answer(&huart4);
+			}
 		}
+
+			//size = 0;
 		/* USER CODE BEGIN 3 */
 
 	}
@@ -78,6 +85,11 @@ int main(void)
  * @param  None
  * @retval None
  */
+
+void bytes(int byte){
+	bytes_to_read = byte;
+}
+
 void Error_Handler(void)
 {
 	/* USER CODE BEGIN Error_Handler */
