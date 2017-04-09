@@ -1,7 +1,10 @@
-/*
-
-*/
 #include "processing.h"
+#include "USART.h"
+
+extern UART_HandleTypeDef huart2;
+void sent_control(int msg){
+	sent = msg;
+}
 
 int type_of_message(char first_byte){ //Тип сообщения
 
@@ -31,25 +34,22 @@ int this_message_is(char second_byte, int message_type){ //Определени�
 		switch(second_byte){
 
 			case 0x06:
-			waiting = STACK;
 			return START;
 
 			case 0x07:
-			if(test_crc(receive_buffer, 6) == OK){
-			waiting = WAY;
+			//if(check_crc(receive_buffer, 6)){
 			return STACK;
-			}
-			break;
+			//}else break;
 
 			case 0x01:
-			if(receive_buffer[3] == send_cnt && test_crc(receive_buffer, 6) == OK)
+			//if(receive_buffer[3] == send_cnt && check_crc(receive_buffer, 6) == OK)
 			return ACK;
-			break;
+			//else break;
 
 			case 0x02:
-			if(receive_buffer[3] == send_cnt && test_crc(receive_buffer, 6) == OK)
+			//if(receive_buffer[3] == send_cnt && check_crc(receive_buffer, 6) == OK)
 			return NACK;
-			break;
+			//else break;
 		}
 
 	}else if(message_type==DATA_COMMAND_MESSAGES){
@@ -57,11 +57,9 @@ int this_message_is(char second_byte, int message_type){ //Определени�
 		switch(second_byte){
 
 			case 0xE0:
-			waiting = ACK;
 			return WAY;
 
 			case 0xE2:
-			waiting = ACK;
 			return READ_DATA;
 
 		}
@@ -71,20 +69,19 @@ int this_message_is(char second_byte, int message_type){ //Определени�
 		switch(second_byte){
 
 			case 0xE0:
-			waiting = ACK;
 			return WAY_RESP;
 
 			case 0xE2:
-			waiting = ACK;
 			return READ_DATA_RESP;
 
 		}
 
-	}
+	}else if(message_type == DATA_BLOCKS)
+		return DATA_BLOCKS;
 	return 0;
 }
 
-void parsing_message(){ //Разбор сообщения
+void parsing_message() { //Разбор сообщения
 
 	receive_message_type = type_of_message(receive_buffer[0]);
 
@@ -92,12 +89,9 @@ void parsing_message(){ //Разбор сообщения
 
 		if(receive_message_type == DATA_MESSAGE_HEADER){
 
-			if(check_crc(receive_buffer, 6) == OK
-				&& receive_buffer[4] == receive_cnt){
-
-			reclaenge = (receive_buffer[2] & 0x3f) << 8 | receive_buffer[1];
+			reclaenge = ((receive_buffer[2] & 0x3f) << 8) | receive_buffer[1];
 			restreclaenge = reclaenge + 2;
-			byteread = (int) restreclaenge;
+			byteread = (int) restreclaenge + 6;
 
 			if((unsigned) byteread > IRREADANZ){
 
@@ -109,60 +103,81 @@ void parsing_message(){ //Разбор сообщения
 		    	dataflag |= IRDATAFIRST;
 
 		    	if (restreclaenge - byteread <= 0){
-		    	receive_message_type = type_of_message(receive_buffer[8]);
-		    	receive_message = this_message_is(receive_buffer[9], receive_message_type);
+		    		receive_message = DATA_MESSAGE_HEADER;
+		    	//receive_message_type = type_of_message(receive_buffer[8]);
+		    	//receive_message = this_message_is(receive_buffer[9], receive_message_type);
+		    	}else{
+		    		if(sent == READ_DATA){
+		    			receive_message = DATA_BLOCKS;
+		    		}
 		    	}
-			}
 		}else
 			receive_message = this_message_is(receive_buffer[1], receive_message_type);
 	}
 }
 
 void answer(UART_HandleTypeDef *Uart){ //Ответ
-		switch(sent){
+		switch(sent) {
 
 			case START:
 
-				if(waiting == STACK && receive_message == STACK){
+				if(receive_message == STACK){
 					send_way(Uart);
-					waiting = ACK;
+					bytes(8);
 				}
 				break;
 
 			case WAY:
 
-				if(waiting == ACK && receive_message == ACK){
-					waiting = WAY_RESP;
-				}else if(waiting == WAY_RESP && receive_message == WAY_RESP){
+				if(receive_message == ACK){
+					bytes(8);
+					break;
+				}if(receive_message == DATA_MESSAGE_HEADER){
+					bytes(byteread);
+					break;
+				}if(receive_message == WAY_RESP){
 					send_ack(Uart);
-					waiting = 0;
-				}
-				break;
+					send_read_data(Uart);
+					bytes(8);
+					break;
+				} break;
 
 			case READ_DATA:
 
-				if(waiting == ACK && receive_message == ACK){
-					waiting = READ_DATA_RESP;
-				}else if(waiting == READ_DATA_RESP && receive_message == READ_DATA_RESP)
+				if(receive_message == ACK){
+					bytes(8);
+					break;
+				}
+				if(receive_message == DATA_MESSAGE_HEADER){
+					bytes(byteread);
+					break;
+				}
+				if(receive_message == READ_DATA_RESP){
 					send_ack(Uart);
-					waiting = DATA_BLOCKS;
+					bytes(8);
+					break;
+				}
 				break;
 
 			case ACK:
+			if(receive_message == DATA_MESSAGE_HEADER){
+				bytes(byteread);
+				break;
+			}
+			if(receive_message == DATA_BLOCKS){
+				if(restreclaenge >= byteread){
 
-			if(waiting == DATA_BLOCKS && receive_message == DATA_BLOCKS){
-				if(restreclaenge >= byteread && check_crc(receive_buffer,byteread-2) == OK){
 
 				restreclaenge -= byteread;
 
-				if(restreclaenge > 0 && check_crc(receive_buffer,byteread) == OK){
+				if(restreclaenge > 0){
 				send_ack(Uart);
+				bytes(byteread);
 				break;
 				}
 
 				dataflag |= IRDATACOMPLETE;
 				send_ack(Uart);
-				waiting = 0;
 				break;
 				}
 			}
@@ -170,7 +185,8 @@ void answer(UART_HandleTypeDef *Uart){ //Ответ
 		}
 }
 
-int processing(UART_HandleTypeDef *Uart){
+void processing(UART_HandleTypeDef *Uart) {
 	parsing_message();
-	return (answer(Uart));
+	//answer(Uart);
 }
+
