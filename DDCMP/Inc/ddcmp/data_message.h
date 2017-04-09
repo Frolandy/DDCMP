@@ -9,8 +9,17 @@
 #define INC_DATA_MESSAGE_H_
 
 #include "ddcmp_session.h"
+#include "USART.h"
+
+static char accesstype;
+static char list_name = 0x01;
+
+static char securitycode[] = {0x00, 0x00};
+static char passcode[] = {0x00, 0x00};
+static char iruserid[] = {0x00, 0x00};
 
 void set_data_header(int size);
-void send_way(UART_HandleTypeDef *Uart);
+int send_way(UART_HandleTypeDef *Uart);
+int send_read_data(UART_HandleTypeDef *Uart);
 
 #endif /* INC_DATA_MESSAGE_H_ */
