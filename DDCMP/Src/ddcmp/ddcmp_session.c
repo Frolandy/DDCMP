@@ -1,4 +1,5 @@
 #include "ddcmp_session.h"
+#include "USART.h"
 
 int check_crc(unsigned char *buf, int cnt) { //Проверка контрольной суммы
 
@@ -19,10 +20,10 @@ int check_crc(unsigned char *buf, int cnt) { //Проверка контроль
   }
 
   if(*(unsigned char*)buf++ == (crc & 0xff) && *(unsigned char*)buf == (crc >> 8 & 0xff)){
-    return(OK); //crc ok
+    return(1); //crc ok
   }
 
-  return(ERROR); //crc error
+  return(0); //crc error
 }
 
 void set_crc(char *buf, int cnt){ //Установка контрольной суммы
@@ -49,17 +50,15 @@ void set_crc(char *buf, int cnt){ //Установка контрольной с
 
  int resend(int wcnt,UART_HandleTypeDef *Uart) {  //Отправка сообщения
   if(wcnt)
-    write_on_port(Uart, wcnt);
+	  write_on_port(Uart, wcnt);
   return 0;
 }
 
 void initialization(UART_HandleTypeDef *Uart){    //Инициализация, отправка СТАРТ
-  waiting = STACK;
-  sent = START;
-  accesstype = 0x0c;
-  Board_Init();
-  send_start(Uart);
+	sent = START;
+	accesstype = 0x0c;
+	Board_Init();
+	send_start(Uart);
 }
-
 
 
