@@ -9,7 +9,11 @@
 #define SRC_DDCMP_COMMAND_MESSAGES_H_
 
 #include "ddcmp_session.h"
+#include "USART.h"
 #include <string.h>
+
+static unsigned char receive_cnt;        //Счетчик получения ddcmp
+static unsigned char send_cnt;          //Счетчик передачи ddcmp
 
 //control messages
 static char msgstart[] = {0x05, 0x06, 0x40, 0x00, 0x00, 0x01};
