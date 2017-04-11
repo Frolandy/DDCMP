@@ -11,6 +11,11 @@
 #include "ddcmp_session.h"
 #include "USART.h"
 
+#define BUFFER_SIZE     260
+
+char send_buffer[BUFFER_SIZE];  
+unsigned char receive_buffer[BUFFER_SIZE];  
+
 static char accesstype;
 static char list_name = 0x01;
 
