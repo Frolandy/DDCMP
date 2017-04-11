@@ -37,19 +37,13 @@ int this_message_is(char second_byte, int message_type){ //Определени�
 			return START;
 
 			case 0x07:
-			//if(check_crc(receive_buffer, 6)){
 			return STACK;
-			//}else break;
 
 			case 0x01:
-			//if(receive_buffer[3] == send_cnt && check_crc(receive_buffer, 6) == OK)
 			return ACK;
-			//else break;
 
 			case 0x02:
-			//if(receive_buffer[3] == send_cnt && check_crc(receive_buffer, 6) == OK)
 			return NACK;
-			//else break;
 		}
 
 	}else if(message_type==DATA_COMMAND_MESSAGES){
@@ -89,28 +83,8 @@ void parsing_message() { //Разбор сообщения
 
 		if(receive_message_type == DATA_MESSAGE_HEADER){
 
-			reclaenge = ((receive_buffer[2] & 0x3f) << 8) | receive_buffer[1];
-			restreclaenge = reclaenge + 2;
-			byteread = (int) restreclaenge + 6;
-
-			if((unsigned) byteread > IRREADANZ){
-
-				if(restreclaenge - IRREADANZ < 2)
-					byteread = IRREADANZ - 1;
-				else
-					byteread = IRREADANZ;
-		    }
-		    	dataflag |= IRDATAFIRST;
-
-		    	if (restreclaenge - byteread <= 0){
-		    		receive_message = DATA_MESSAGE_HEADER;
-		    	//receive_message_type = type_of_message(receive_buffer[8]);
-		    	//receive_message = this_message_is(receive_buffer[9], receive_message_type);
-		    	}else{
-		    		if(sent == READ_DATA){
-		    			receive_message = DATA_BLOCKS;
-		    		}
-		    	}
+		    	receive_message_type = type_of_message(receive_buffer[8]);
+		    	receive_message = this_message_is(receive_buffer[9], receive_message_type);
 		}else
 			receive_message = this_message_is(receive_buffer[1], receive_message_type);
 	}
@@ -130,31 +104,25 @@ void answer(UART_HandleTypeDef *Uart){ //Ответ
 			case WAY:
 
 				if(receive_message == ACK){
-					bytes(8);
+					bytes(9);
 					break;
-				}if(receive_message == DATA_MESSAGE_HEADER){
-					bytes(byteread);
-					break;
-				}if(receive_message == WAY_RESP){
+				}
+				if(receive_message == WAY_RESP){
 					send_ack(Uart);
 					send_read_data(Uart);
 					bytes(8);
-					break;
-				} break;
+				} 
+				break;
 
 			case READ_DATA:
 
 				if(receive_message == ACK){
-					bytes(8);
-					break;
-				}
-				if(receive_message == DATA_MESSAGE_HEADER){
-					bytes(byteread);
+					bytes(9);
 					break;
 				}
 				if(receive_message == READ_DATA_RESP){
 					send_ack(Uart);
-					bytes(8);
+					bytes(9);
 					break;
 				}
 				break;
@@ -165,6 +133,20 @@ void answer(UART_HandleTypeDef *Uart){ //Ответ
 				break;
 			}
 			if(receive_message == DATA_BLOCKS){
+				
+				reclaenge = ((receive_buffer[2] & 0x3f) << 8) | receive_buffer[1];
+				restreclaenge = reclaenge + 2;
+				byteread = (int) restreclaenge;
+
+				if((unsigned) byteread > IRREADANZ){
+
+					if(restreclaenge - IRREADANZ < 2)
+						byteread = IRREADANZ - 1;
+					else
+						byteread = IRREADANZ;
+					}
+					dataflag |= IRDATAFIRST;
+				
 				if(restreclaenge >= byteread){
 
 
@@ -178,7 +160,6 @@ void answer(UART_HandleTypeDef *Uart){ //Ответ
 
 				dataflag |= IRDATACOMPLETE;
 				send_ack(Uart);
-				break;
 				}
 			}
 			break;
@@ -187,6 +168,6 @@ void answer(UART_HandleTypeDef *Uart){ //Ответ
 
 void processing(UART_HandleTypeDef *Uart) {
 	parsing_message();
-	//answer(Uart);
+	answer(Uart);
 }
 
