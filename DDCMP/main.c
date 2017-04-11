@@ -53,23 +53,18 @@ extern UART_HandleTypeDef huart4; // for Espruino communication
 
 int main(void)
 {
+	int size;
 	initialization(&huart4);
-	while (1)
-	{
-		/* USER CODE END WHILE */
-
-		if (USART_GetRxCount(&huart4) > 0) {
-			if(read_on_port(&huart4,bytes_to_read)){
-				for(int i=0; i<bytes_to_read; i++){
-					USART_PutChar(&huart4, receive_buffer[i]);
-				}
+	while(1){
+		if (USART_GetRxCount(&huart4) > 0){
+		size = read_on_port(&huart4, bytes_to_read);
+			if (size > 0){
+		//		for(int i=0; i<size; i++){
+		//		USART_PutChar(&huart2, receive_buffer[i]);
+		//		}
 				processing(&huart4);
-				answer(&huart4);
 			}
 		}
-
-			//size = 0;
-		/* USER CODE BEGIN 3 */
 
 	}
 
