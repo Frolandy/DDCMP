@@ -6,14 +6,19 @@ void write_on_port(UART_HandleTypeDef *Uart, int size){
 	}
 }
 int read_on_port(UART_HandleTypeDef *Uart, int byte){
-	int _is_readed = 0;
-
+	if(byte == 9 && _received_b > 3){
+		int rec, rest, byt;
+		rec = ((receive_buffer[2] & 0x3f) << 8) | receive_buffer[1];
+					rest = rec + 2;
+					byt = (int) rest;
+		byte = byt + 8;
+	}
 			if(USART_GetRxCount(Uart) > 0){
 			receive_buffer[_received_b++] = USART_GetChar(Uart);
 			if (_received_b == byte) {
-				_is_readed = 1;
 				_received_b = 0;
+				return byte;
 			}
 		}
-			return _is_readed;
+			return 0;
 }
